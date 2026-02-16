@@ -33,6 +33,7 @@ function StickyNoteInner({ note, wallId }: StickyNoteProps) {
   const setConnectionFromNoteId = useWallStore((s) => s.setConnectionFromNoteId);
   const addConnection = useWallStore((s) => s.addConnection);
   const duplicateNote = useWallStore((s) => s.duplicateNote);
+  const zoom = useWallStore((s) => s.zoom);
 
   const handleContentChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -118,8 +119,8 @@ function StickyNoteInner({ note, wallId }: StickyNoteProps) {
   useEffect(() => {
     if (!isResizing) return;
     const onMove = (e: MouseEvent) => {
-      const dx = e.clientX - resizeStartRef.current.x;
-      const dy = e.clientY - resizeStartRef.current.y;
+      const dx = (e.clientX - resizeStartRef.current.x) / zoom;
+      const dy = (e.clientY - resizeStartRef.current.y) / zoom;
       const newW = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, resizeStartRef.current.w + dx));
       const newH = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, resizeStartRef.current.h + dy));
       resizeNote(wallId, note.id, newW, newH);
@@ -137,19 +138,21 @@ function StickyNoteInner({ note, wallId }: StickyNoteProps) {
     (e: React.PointerEvent) => {
       if ((e.target as HTMLElement).closest("button, textarea")) return;
       e.currentTarget.setPointerCapture(e.pointerId);
-      dragStartRef.current = { x: e.clientX - note.x, y: e.clientY - note.y };
+      dragStartRef.current = { x: e.clientX - note.x * zoom, y: e.clientY - note.y * zoom };
     },
-    [note.x, note.y]
+    [note.x, note.y, zoom]
   );
   const handleDragMove = useCallback(
     (e: React.PointerEvent) => {
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        const x = Math.max(0, e.clientX - dragStartRef.current.x);
-        const y = Math.max(0, e.clientY - dragStartRef.current.y);
+        const screenX = e.clientX - dragStartRef.current.x;
+        const screenY = e.clientY - dragStartRef.current.y;
+        const x = Math.max(0, screenX / zoom);
+        const y = Math.max(0, screenY / zoom);
         moveNote(wallId, note.id, x, y);
       }
     },
-    [wallId, note.id, moveNote]
+    [wallId, note.id, moveNote, zoom]
   );
   const handleDragEnd = useCallback((e: React.PointerEvent) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
@@ -160,10 +163,10 @@ function StickyNoteInner({ note, wallId }: StickyNoteProps) {
       data-note-id={note.id}
       className="absolute cursor-grab active:cursor-grabbing select-none"
       style={{
-        left: note.x,
-        top: note.y,
-        width: note.width,
-        height: note.height,
+        left: note.x * zoom,
+        top: note.y * zoom,
+        width: note.width * zoom,
+        height: note.height * zoom,
         outline: connectionFromNoteId === note.id ? "2px solid #00b4d8" : undefined,
         outlineOffset: 2,
       }}
@@ -267,8 +270,8 @@ function StickyNoteInner({ note, wallId }: StickyNoteProps) {
                   if (!wallContainer) return;
                   const wallRect = wallContainer.getBoundingClientRect();
 
-                  const relX = ev.clientX - wallRect.left;
-                  const relY = ev.clientY - wallRect.top;
+                  const relX = (ev.clientX - wallRect.left) / zoom;
+                  const relY = (ev.clientY - wallRect.top) / zoom;
 
                   useWallStore.getState().setTempConnection({
                     fromNoteId: note.id,

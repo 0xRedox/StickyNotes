@@ -48,6 +48,9 @@ interface WallState {
   activeWallId: string | null;
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  // Wall zoom (UI only, not persisted in walls)
+  zoom: number;
+  setZoom: (zoom: number) => void;
   // Actions
   hydrate: () => void;
   persist: () => void;
@@ -83,6 +86,11 @@ export const useWallStore = create<WallState>((set, get) => ({
   setSearchQuery(q) {
     set({ searchQuery: q });
   },
+   zoom: 1,
+   setZoom(zoom) {
+     const clamped = Math.min(2, Math.max(0.25, zoom));
+     set({ zoom: clamped });
+   },
   connectionFromNoteId: null,
   tempConnection: null,
   setTempConnection(temp) {

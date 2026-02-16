@@ -15,6 +15,8 @@ export function GridWall() {
   const [size, setSize] = useState({ w: 1200, h: 700 });
   const wall = useWallStore((s) => s.getActiveWall());
   const addNote = useWallStore((s) => s.addNote);
+  const zoom = useWallStore((s) => s.zoom);
+  const setZoom = useWallStore((s) => s.setZoom);
   const searchQuery = useWallStore((s) => s.searchQuery);
   const removeConnection = useWallStore((s) => s.removeConnection);
   const tempConnection = useWallStore((s) => s.tempConnection);
@@ -50,11 +52,27 @@ export function GridWall() {
       const rect = containerRef.current.getBoundingClientRect();
       const px = e.clientX - rect.left;
       const py = e.clientY - rect.top;
-      const wallX = Math.max(0, Math.min(size.w - 220, (px / rect.width) * size.w - 110));
-      const wallY = Math.max(0, Math.min(size.h - 200, (py / rect.height) * size.h - 100));
+      const wallWidth = size.w / zoom;
+      const wallHeight = size.h / zoom;
+      const NOTE_WIDTH = 220;
+      const NOTE_HEIGHT = 200;
+      const wallX = Math.max(
+        0,
+        Math.min(
+          Math.max(wallWidth - NOTE_WIDTH, 0),
+          px / zoom - NOTE_WIDTH / 2
+        )
+      );
+      const wallY = Math.max(
+        0,
+        Math.min(
+          Math.max(wallHeight - NOTE_HEIGHT, 0),
+          py / zoom - NOTE_HEIGHT / 2
+        )
+      );
       addNote(wall.id, wallX, wallY);
     },
-    [wall, addNote, size]
+    [wall, addNote, size, zoom]
   );
 
   const setConnectionFromNoteId = useWallStore((s) => s.setConnectionFromNoteId);
@@ -138,10 +156,10 @@ export function GridWall() {
           const from = filteredNotes.find((n) => n.id === conn.fromNoteId);
           const to = filteredNotes.find((n) => n.id === conn.toNoteId);
           if (!from || !to) return null;
-          const x1 = from.x + from.width / 2;
-          const y1 = from.y + from.height / 2;
-          const x2 = to.x + to.width / 2;
-          const y2 = to.y + to.height / 2;
+          const x1 = (from.x + from.width / 2) * zoom;
+          const y1 = (from.y + from.height / 2) * zoom;
+          const x2 = (to.x + to.width / 2) * zoom;
+          const y2 = (to.y + to.height / 2) * zoom;
           return (
             <g key={conn.id} onClick={() => removeConnection(wall.id, conn.id)}>
               <line
@@ -171,14 +189,14 @@ export function GridWall() {
         {tempConnection && (() => {
           const from = filteredNotes.find((n) => n.id === tempConnection.fromNoteId);
           if (!from) return null;
-          const x1 = from.x + from.width / 2;
-          const y1 = from.y + from.height / 2;
+          const x1 = (from.x + from.width / 2) * zoom;
+          const y1 = (from.y + from.height / 2) * zoom;
           return (
             <line
               x1={x1}
               y1={y1}
-              x2={tempConnection.toX}
-              y2={tempConnection.toY}
+              x2={tempConnection.toX * zoom}
+              y2={tempConnection.toY * zoom}
               stroke={theme.accent}
               strokeWidth={2}
               strokeDasharray="5,5"
@@ -195,6 +213,27 @@ export function GridWall() {
         {filteredNotes.map((note) => (
           <StickyNote key={note.id} note={note} wallId={wall.id} />
         ))}
+      </div>
+
+      {/* Zoom controls (bottom-left) */}
+      <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-xs text-slate-700 shadow-lg">
+        <button
+          type="button"
+          className="pointer-events-auto rounded-full px-2 py-1 hover:bg-slate-100"
+          onClick={() => setZoom(zoom - 0.1)}
+        >
+          −
+        </button>
+        <span className="pointer-events-auto select-none tabular-nums">
+          {Math.round(zoom * 100)}%
+        </span>
+        <button
+          type="button"
+          className="pointer-events-auto rounded-full px-2 py-1 hover:bg-slate-100"
+          onClick={() => setZoom(zoom + 0.1)}
+        >
+          +
+        </button>
       </div>
     </div>
   );

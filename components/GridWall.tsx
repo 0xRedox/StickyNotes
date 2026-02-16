@@ -215,22 +215,24 @@ export function GridWall() {
         ))}
       </div>
 
-      {/* Zoom controls (bottom-left) */}
-      <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/80 px-2 py-1 text-xs text-slate-700 shadow-lg">
+      {/* Zoom controls (bottom-left), touch-friendly on mobile */}
+      <div className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-0.5 rounded-full bg-white/90 px-1 py-1 text-xs text-slate-700 shadow-lg sm:bottom-4 sm:left-4">
         <button
           type="button"
-          className="pointer-events-auto rounded-full px-2 py-1 hover:bg-slate-100"
+          className="pointer-events-auto flex h-9 min-h-[44px] w-9 min-w-[44px] items-center justify-center rounded-full hover:bg-slate-100 active:bg-slate-200 sm:h-8 sm:min-h-0 sm:w-8 sm:min-w-0"
           onClick={() => setZoom(zoom - 0.1)}
+          aria-label="Zoom out"
         >
           −
         </button>
-        <span className="pointer-events-auto select-none tabular-nums">
+        <span className="pointer-events-auto min-w-[2.5rem] select-none text-center tabular-nums">
           {Math.round(zoom * 100)}%
         </span>
         <button
           type="button"
-          className="pointer-events-auto rounded-full px-2 py-1 hover:bg-slate-100"
+          className="pointer-events-auto flex h-9 min-h-[44px] w-9 min-w-[44px] items-center justify-center rounded-full hover:bg-slate-100 active:bg-slate-200 sm:h-8 sm:min-h-0 sm:w-8 sm:min-w-0"
           onClick={() => setZoom(zoom + 0.1)}
+          aria-label="Zoom in"
         >
           +
         </button>

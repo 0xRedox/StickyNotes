@@ -51,6 +51,8 @@ interface WallState {
   // Wall zoom (UI only, not persisted in walls)
   zoom: number;
   setZoom: (zoom: number) => void;
+  // Hydration: true after localStorage has been read (avoids showing empty state on refresh)
+  hasHydrated: boolean;
   // Actions
   hydrate: () => void;
   persist: () => void;
@@ -87,10 +89,11 @@ export const useWallStore = create<WallState>((set, get) => ({
     set({ searchQuery: q });
   },
    zoom: 1,
-   setZoom(zoom) {
-     const clamped = Math.min(2, Math.max(0.25, zoom));
-     set({ zoom: clamped });
-   },
+  setZoom(zoom) {
+    const clamped = Math.min(2, Math.max(0.25, zoom));
+    set({ zoom: clamped });
+  },
+  hasHydrated: false,
   connectionFromNoteId: null,
   tempConnection: null,
   setTempConnection(temp) {
@@ -105,10 +108,14 @@ export const useWallStore = create<WallState>((set, get) => ({
         theme: "skyblue" as ThemeId,
         connections: Array.isArray(w.connections) ? w.connections : [],
       }));
-      set({ walls, activeWallId: data.activeWallId ?? data.walls[0]?.id ?? null });
+      set({
+        walls,
+        activeWallId: data.activeWallId ?? data.walls[0]?.id ?? null,
+        hasHydrated: true,
+      });
     } else {
       const first = createEmptyWall();
-      set({ walls: [first], activeWallId: first.id });
+      set({ walls: [first], activeWallId: first.id, hasHydrated: true });
     }
   },
 

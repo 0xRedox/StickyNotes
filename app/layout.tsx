@@ -25,8 +25,15 @@ const nanumMyeongjo = Nanum_Myeongjo({
 });
 
 export const metadata: Metadata = {
-  title: "GridWall — 3D Sticky Notes",
-  description: "A 3D grid wall where you can place and organize sticky notes.",
+  title: "GridWall — Sticky Notes & Calendar",
+  description: "A sticky notes wall and calendar. Organize notes, connect ideas, export as image.",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({

@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "auto": "git add . && git commit -m \"auto commit\" && git push"
   },
   "dependencies": {
     "framer-motion": "^12.34.0",

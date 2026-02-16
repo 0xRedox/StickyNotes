@@ -10,9 +10,12 @@ import type { ViewMode } from "@/app/page";
 interface SidebarProps {
   viewMode: ViewMode;
   setViewMode: (v: ViewMode) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isMobile?: boolean;
 }
 
-export function Sidebar({ viewMode, setViewMode }: SidebarProps) {
+export function Sidebar({ viewMode, setViewMode, isOpen = false, onClose, isMobile = false }: SidebarProps) {
   const walls = useWallStore((s) => s.walls);
   const activeWallId = useWallStore((s) => s.activeWallId);
   const setActiveWall = useWallStore((s) => s.setActiveWall);
@@ -53,19 +56,40 @@ export function Sidebar({ viewMode, setViewMode }: SidebarProps) {
 
   return (
     <aside
-      className="flex w-64 flex-shrink-0 flex-col border-r backdrop-blur-xl transition-colors duration-300"
+      className={`
+        flex w-64 flex-shrink-0 flex-col border-r backdrop-blur-xl transition-colors duration-300
+        md:relative md:translate-x-0
+        ${isMobile ? "fixed inset-y-0 left-0 z-50 w-[min(288px,85vw)] transform border-r shadow-xl transition-transform duration-200" : ""}
+        ${isMobile && !isOpen ? "-translate-x-full" : ""}
+        ${isMobile && isOpen ? "translate-x-0" : ""}
+      `}
       style={sidebarStyle}
     >
-      <div className="border-b p-4 transition-colors duration-300" style={{ borderColor: theme?.sidebarBorder }}>
-        <h1 className="font-display text-xl font-bold tracking-tight" style={{ color: theme?.accent }}>
-          GridWall
-        </h1>
-        <p className="mt-1 text-xs opacity-70 transition-opacity duration-200">Notes & calendar</p>
+      <div className="flex flex-shrink-0 items-start justify-between border-b p-4 transition-colors duration-300" style={{ borderColor: theme?.sidebarBorder }}>
+        <div>
+          <h1 className="font-display text-xl font-bold tracking-tight" style={{ color: theme?.accent }}>
+            GridWall
+          </h1>
+          <p className="mt-1 text-xs opacity-70 transition-opacity duration-200">Notes & calendar</p>
+        </div>
+        {isMobile && onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border transition-colors active:opacity-80"
+            style={{ borderColor: theme?.sidebarBorder }}
+            aria-label="Close menu"
+          >
+            <span className="text-lg leading-none">×</span>
+          </button>
+        )}
+      </div>
+      <div className="border-b px-4 pb-3 pt-0 transition-colors duration-300 md:border-b-0 md:p-4 md:pt-4" style={{ borderColor: theme?.sidebarBorder }}>
         <div className="mt-3 flex gap-1 rounded-lg border p-0.5" style={{ borderColor: theme?.sidebarBorder }}>
           <button
             type="button"
-            onClick={() => setViewMode("wall")}
-            className="flex-1 rounded-md py-1.5 text-xs font-medium transition-colors"
+            onClick={() => { setViewMode("wall"); onClose?.(); }}
+            className="flex-1 rounded-md py-1.5 text-xs font-medium transition-colors min-h-[44px] touch-manipulation"
             style={{
               backgroundColor: viewMode === "wall" ? theme?.accent + "22" : "transparent",
               color: viewMode === "wall" ? theme?.accent : theme?.textMuted,
@@ -75,8 +99,8 @@ export function Sidebar({ viewMode, setViewMode }: SidebarProps) {
           </button>
           <button
             type="button"
-            onClick={() => setViewMode("calendar")}
-            className="flex-1 rounded-md py-1.5 text-xs font-medium transition-colors"
+            onClick={() => { setViewMode("calendar"); onClose?.(); }}
+            className="flex-1 rounded-md py-1.5 text-xs font-medium transition-colors min-h-[44px] touch-manipulation"
             style={{
               backgroundColor: viewMode === "calendar" ? theme?.accent + "22" : "transparent",
               color: viewMode === "calendar" ? theme?.accent : theme?.textMuted,

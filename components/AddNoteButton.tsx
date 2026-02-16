@@ -29,7 +29,7 @@ export function AddNoteButton() {
     <motion.button
       type="button"
       onClick={handleClick}
-      className="font-display absolute bottom-8 right-8 flex h-14 w-14 items-center justify-center rounded-full border-2 border-black/15 shadow-lg transition-shadow duration-200 hover:shadow-[0_0_24px_rgba(0,255,255,0.4)]"
+      className="font-display absolute bottom-6 right-6 flex h-14 min-h-[48px] w-14 min-w-[48px] items-center justify-center rounded-full border-2 border-black/15 shadow-lg transition-shadow duration-200 hover:shadow-[0_0_24px_rgba(0,255,255,0.4)] sm:bottom-8 sm:right-8 touch-manipulation"
       style={{
         backgroundColor: theme.accent,
         color: theme.bg,

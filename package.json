@@ -10,6 +10,7 @@
     "auto": "git add . && git commit -m \"auto commit\" && git push"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "framer-motion": "^12.34.0",
     "html2canvas": "^1.4.1",
     "next": "16.1.6",

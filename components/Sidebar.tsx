@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import html2canvas from "html2canvas";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWallStore } from "@/store/useWallStore";
@@ -30,10 +30,71 @@ export function Sidebar({ viewMode, setViewMode, isOpen = false, onClose, isMobi
   const theme = getTheme("skyblue");
 
   const [importError, setImportError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+
+  const runExportAsImage = useCallback(async () => {
+    if (!wall) return;
+    const el = document.querySelector("[data-wall-export]") as HTMLElement | null;
+    if (!el) {
+      setExportError("Switch to Wall view first, then try again.");
+      return;
+    }
+    setExportError(null);
+    setExporting(true);
+    try {
+      const rect = el.getBoundingClientRect();
+      const canvas = await html2canvas(el, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        logging: false,
+        width: rect.width,
+        height: rect.height,
+        windowWidth: rect.width,
+        windowHeight: rect.height,
+        scrollX: 0,
+        scrollY: 0,
+        useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
+      });
+      canvas.toBlob(
+        (blob) => {
+          setExporting(false);
+          if (!blob) {
+            setExportError("Export failed.");
+            return;
+          }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `gridwall-${wall.name.replace(/\s+/g, "-")}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        },
+        "image/png",
+        1
+      );
+    } catch (e) {
+      setExporting(false);
+      setExportError("Export failed. Try switching to Wall view first.");
+      console.error("Export as image failed:", e);
+    }
+  }, [wall]);
+
+  const handleExportAsImage = useCallback(() => {
+    setExportError(null);
+    if (viewMode !== "wall") {
+      setViewMode("wall");
+      setTimeout(() => runExportAsImage(), 600);
+    } else {
+      runExportAsImage();
+    }
+  }, [viewMode, setViewMode, runExportAsImage]);
 
   const handleStartRename = (w: { id: string; name: string }) => {
     setEditingId(w.id);
@@ -207,35 +268,16 @@ export function Sidebar({ viewMode, setViewMode, isOpen = false, onClose, isMobi
           <div className="space-y-2">
             <button
               type="button"
-              onClick={async () => {
-                const el = document.querySelector("[data-wall-export]") as HTMLElement | null;
-                if (!el) return;
-                try {
-                  const canvas = await html2canvas(el, {
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: "#ffffff",
-                    scale: 2,
-                    logging: false,
-                  });
-                  canvas.toBlob((blob) => {
-                    if (!blob) return;
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `gridwall-${wall.name.replace(/\s+/g, "-")}.png`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }, "image/png");
-                } catch {
-                  // ignore
-                }
-              }}
-              className="font-display w-full rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 hover:opacity-100"
+              onClick={handleExportAsImage}
+              disabled={exporting}
+              className="font-display w-full rounded-lg border px-3 py-2 text-xs font-medium transition-all duration-200 hover:opacity-100 disabled:opacity-60"
               style={{ borderColor: theme?.sidebarBorder }}
             >
-              Export wall as image
+              {exporting ? "Exporting…" : "Export wall as image"}
             </button>
+            {exportError && (
+              <p className="text-[10px] text-red-600">{exportError}</p>
+            )}
             <button
               type="button"
               onClick={() => {

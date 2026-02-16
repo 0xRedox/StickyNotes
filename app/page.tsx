@@ -32,7 +32,6 @@ function MainContent({
   setViewMode: (v: ViewMode) => void;
   onOpenSidebar: () => void;
 }) {
-  const activeWallId = useWallStore((s) => s.activeWallId);
   const isMobile = useIsMobile();
   const theme = getTheme("skyblue");
 
@@ -85,7 +84,7 @@ function MainContent({
       <AnimatePresence mode="wait">
         {viewMode === "wall" ? (
           <motion.div
-            key={`wall-${activeWallId ?? "empty"}`}
+            key="wall"
             className="h-full min-h-0 w-full flex-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

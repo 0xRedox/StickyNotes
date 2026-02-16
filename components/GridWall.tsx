@@ -13,7 +13,12 @@ const GRID_SIZE = 32;
 export function GridWall() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 1200, h: 700 });
-  const wall = useWallStore((s) => s.getActiveWall());
+  const activeWallId = useWallStore((s) => s.activeWallId);
+  const walls = useWallStore((s) => s.walls);
+  const wall = useMemo(
+    () => walls.find((w) => w.id === activeWallId) ?? null,
+    [walls, activeWallId]
+  );
   const addNote = useWallStore((s) => s.addNote);
   const zoom = useWallStore((s) => s.zoom);
   const setZoom = useWallStore((s) => s.setZoom);
@@ -31,7 +36,7 @@ export function GridWall() {
         n.content.toLowerCase().includes(q) ||
         (n.date ?? "").toLowerCase().includes(q)
     );
-  }, [wall?.notes, searchQuery]);
+  }, [wall, searchQuery]);
 
   useEffect(() => {
     const el = containerRef.current;
